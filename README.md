@@ -211,6 +211,3 @@ For issues, questions, or suggestions, please open an issue on GitHub.
 - Streamlit for the amazing web framework
 - scikit-learn for machine learning capabilities
 
----
-
-**Built with ❤️ using Python and AI**
