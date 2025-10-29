@@ -1,9 +1,22 @@
-streamlit
-opencv-python-headless==4.10.0.84
+# ---- Streamlit App Requirements ----
+streamlit==1.50.0
+
+# ---- Core Libraries ----
 numpy
 pillow
-scikit-image
 pandas
+scikit-image
+
+# ---- OpenCV (Headless for Streamlit Cloud) ----
+opencv-python-headless==4.10.0.84
+
+# ---- PDF Report Generation ----
 reportlab
-deepface
-tensorflow
+
+# ---- Deep Learning & Face Verification ----
+deepface==0.0.95
+tensorflow==2.15.0  # compatible with DeepFace
+keras==2.15.0
+
+# ---- Optional but helpful ----
+protobuf<4
