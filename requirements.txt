@@ -1,22 +1,10 @@
-# ==== Streamlit App ====
-streamlit==1.50.0
-
-# ==== Core Libraries ====
-numpy
-pillow
-pandas
-scikit-image
-
-# ==== OpenCV (Headless for Streamlit Cloud) ====
+streamlit==1.39.0
 opencv-python-headless==4.10.0.84
-
-# ==== PDF Report Generation ====
-reportlab
-
-# ==== AI & Face Verification ====
-deepface==0.0.95
-tensorflow==2.20.0
-keras==3.4.1
-
-# ==== Compatibility ====
-protobuf==4.25.3
+numpy==1.26.4
+pandas==2.2.3
+Pillow==10.4.0
+scikit-image==0.24.0
+deepface==0.0.93
+tensorflow==2.17.0
+protobuf>=5.28.0,<6.0.0
+reportlab==4.2.5
