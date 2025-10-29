@@ -1,22 +1,15 @@
-# ---- Streamlit App ----
-streamlit==1.50.0
+# ==============================
+# AI Fraud Detection Dependencies
+# ==============================
 
-# ---- Core Libraries ----
+streamlit==1.39.0
 numpy
 pillow
 pandas
 scikit-image
-
-# ---- OpenCV (Headless Only) ----
 opencv-python-headless==4.10.0.84
-
-# ---- PDF Report Generation ----
 reportlab
-
-# ---- Deep Learning & Face Verification ----
 deepface==0.0.95
 tensorflow==2.20.0
-keras==3.4.1  # auto-installed with TF 2.20.0
-
-# ---- Compatibility ----
-protobuf==4.25.3
+keras==3.10.0
+protobuf>=5.28.0
