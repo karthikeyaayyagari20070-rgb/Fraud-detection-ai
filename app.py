@@ -1,156 +1,156 @@
+# ==========================================
+# AI Banking Fraud Detection & Verification
+# ==========================================
+
 import streamlit as st
+import cv2
+import numpy as np
+from skimage.metrics import structural_similarity as ssim
 from PIL import Image
 import pandas as pd
 import io
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
 
-# Set page config
-st.set_page_config(
-    page_title="Banking Fraud Detection System",
-    page_icon="🔒",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
+# ------------------- SAFE IMPORT DEEPFACE -------------------
+try:
+    from deepface import DeepFace
+    deepface_available = True
+except Exception as e:
+    deepface_available = False
 
-# Custom CSS for better styling
-st.markdown("""
+# ------------------- PAGE CONFIG -------------------
+st.set_page_config(page_title="AI Banking Fraud Detection", layout="wide")
+
+# ------------------- STYLE -------------------
+st.markdown(
+    """
     <style>
-    .main-header {
-        font-size: 2.5rem;
-        font-weight: bold;
-        color: #1f77b4;
-        text-align: center;
-        margin-bottom: 2rem;
+    .main {
+        background-color: #E6ECF0;
+        color: #003366;
     }
-    .section-header {
-        font-size: 1.8rem;
-        font-weight: bold;
-        color: #2c3e50;
-        margin-top: 2rem;
-        margin-bottom: 1rem;
+    [data-testid="stSidebar"] {
+        background-color: #003366;
+        color: silver;
     }
-    .risk-high {
-        background-color: #ffebee;
-        padding: 1rem;
-        border-left: 5px solid #f44336;
-        border-radius: 5px;
+    [data-testid="stSidebar"] * {
+        color: silver !important;
     }
-    .risk-medium {
-        background-color: #fff9c4;
-        padding: 1rem;
-        border-left: 5px solid #ff9800;
-        border-radius: 5px;
-    }
-    .risk-low {
-        background-color: #e8f5e9;
-        padding: 1rem;
-        border-left: 5px solid #4caf50;
-        border-radius: 5px;
+    h1, h2, h3 {
+        color: #003366;
     }
     </style>
-""", unsafe_allow_html=True)
+    """,
+    unsafe_allow_html=True
+)
 
-# Initialize session state
-if 'page' not in st.session_state:
-    st.session_state.page = 'Home'
+# ------------------- TITLE -------------------
+st.title("🏦 AI Banking Fraud Detection & Verification")
+st.markdown("---")
 
-# Sidebar navigation
-st.sidebar.title("🔒 Fraud Detection")
-st.sidebar.markdown("---")
+# ------------------- SIDEBAR -------------------
+st.sidebar.header("📂 Upload Section")
+uploaded_file1 = st.sidebar.file_uploader("Upload Original Document/Image", type=["jpg", "jpeg", "png"])
+uploaded_file2 = st.sidebar.file_uploader("Upload Suspected Document/Image", type=["jpg", "jpeg", "png"])
+verify_faces = st.sidebar.checkbox("Enable Face Verification (Optional)", value=False)
 
-pages = {
-    "🏠 Home": "Home",
-    "📄 Document Tampering": "Document Tampering",
-    "✍️ Signature Fraud": "Signature Fraud",
-    "🆔 Aadhaar Verification": "Aadhaar Verification",
-    "💳 PAN Verification": "PAN Verification",
-    "👤 KYC Processing": "KYC Processing",
-    "💰 Transaction Analysis": "Transaction Analysis"
-}
+# ------------------- FRAUD RULES -------------------
+fraud_rules = """
+1. Signature/Document similarity is compared using SSIM (Structural Similarity Index).
+2. Face verification uses DeepFace for identity matching (if enabled).
+3. Fraud likelihood is based on a similarity threshold of 0.75.
+4. All images are processed using OpenCV and compared pixel-by-pixel.
+"""
 
-for label, page_name in pages.items():
-    if st.sidebar.button(label, use_container_width=True):
-        st.session_state.page = page_name
+# ------------------- IMAGE SIMILARITY -------------------
+def compare_images(img1, img2):
+    grayA = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
+    grayB = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
+    score, _ = ssim(grayA, grayB, full=True)
+    return score
 
-st.sidebar.markdown("---")
-st.sidebar.info("""
-**Banking Fraud Detection System**
+# ------------------- PDF REPORT GENERATOR -------------------
+def generate_pdf(similarity, result_text, face_verified):
+    buffer = io.BytesIO()
+    c = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
 
-AI-powered fraud detection for:
-- Document verification
-- Signature analysis
-- Identity validation
-- Transaction monitoring
-""")
+    c.setFont("Helvetica-Bold", 18)
+    c.drawCentredString(width / 2, height - 100, "AI Banking Fraud Detection Report")
 
-# Main content area
-if st.session_state.page == "Home":
-    st.markdown('<div class="main-header">🔒 Banking Fraud Detection System</div>', unsafe_allow_html=True)
-    
-    st.markdown("""
-    ### Welcome to the AI-Powered Banking Fraud Detection System
-    
-    This comprehensive fraud detection platform helps identify and prevent banking fraud through advanced AI analysis and pattern recognition.
-    """)
-    
-    col1, col2, col3 = st.columns(3)
-    
+    c.setFont("Helvetica", 12)
+    c.drawString(50, height - 150, f"Document Similarity Score: {similarity:.2f}")
+    c.drawString(50, height - 170, f"Final Result: {result_text}")
+    c.drawString(50, height - 190, f"Face Verification: {'Enabled' if verify_faces else 'Disabled'}")
+    if verify_faces:
+        c.drawString(50, height - 210, f"Face Match Result: {face_verified}")
+
+    c.setFont("Helvetica-Bold", 14)
+    c.drawString(50, height - 250, "Fraud Detection Rules Followed:")
+    text = c.beginText(50, height - 270)
+    text.setFont("Helvetica", 12)
+    for line in fraud_rules.strip().split("\n"):
+        text.textLine(line.strip())
+    c.drawText(text)
+
+    c.setFont("Helvetica-Bold", 14)
+    c.drawString(50, 150, "Models Used:")
+    c.setFont("Helvetica", 12)
+    c.drawString(50, 130, "- OpenCV for image comparison")
+    c.drawString(50, 115, "- DeepFace (if enabled) for face verification")
+    c.drawString(50, 100, "- SSIM for structural similarity index")
+
+    c.showPage()
+    c.save()
+    buffer.seek(0)
+    return buffer
+
+# ------------------- MAIN LOGIC -------------------
+if uploaded_file1 and uploaded_file2:
+    st.subheader("🔍 Image Comparison Result")
+
+    img1 = np.array(Image.open(uploaded_file1).convert("RGB"))
+    img2 = np.array(Image.open(uploaded_file2).convert("RGB"))
+
+    # Resize to same size
+    img2 = cv2.resize(img2, (img1.shape[1], img1.shape[0]))
+
+    similarity = compare_images(img1, img2)
+    result_text = "✅ Documents Match (No Fraud)" if similarity >= 0.75 else "⚠️ Fraud Detected (Mismatch Found)"
+
+    col1, col2 = st.columns(2)
     with col1:
-        st.markdown("""
-        #### 📄 Document Analysis
-        - **Document Tampering Detection**: AI-powered analysis to detect alterations and forgery
-        - **Visual Inspection**: Identifies inconsistencies, artifacts, and manipulation signs
-        """)
-    
+        st.image(img1, caption="Original Document", use_container_width=True)
     with col2:
-        st.markdown("""
-        #### 🆔 Identity Verification
-        - **Aadhaar Verification**: Format validation and visual authenticity checks
-        - **PAN Verification**: Structure validation and document analysis
-        - **KYC Processing**: Automated information extraction from ID documents
-        """)
-    
-    with col3:
-        st.markdown("""
-        #### 💰 Transaction Monitoring
-        - **Pattern Analysis**: Detect unusual transaction patterns
-        - **Anomaly Detection**: ML-based identification of suspicious activity
-        - **Risk Scoring**: Comprehensive fraud risk assessment
-        """)
-    
-    st.markdown("---")
-    st.markdown("""
-    ### 🚀 Getting Started
-    
-    Select a feature from the sidebar to begin fraud detection analysis:
-    1. **Document Tampering**: Upload documents to check for manipulation
-    2. **Signature Fraud**: Compare signatures to detect forgery
-    3. **Aadhaar/PAN Verification**: Validate Indian identity documents
-    4. **KYC Processing**: Extract and validate customer information
-    5. **Transaction Analysis**: Upload transaction data to detect anomalies
-    """)
-    
-    st.success("✅ System is ready. Select a feature from the sidebar to begin.")
+        st.image(img2, caption="Suspected Document", use_container_width=True)
 
-elif st.session_state.page == "Document Tampering":
-    from pages import document_tampering
-    document_tampering.show()
+    st.success(f"**Similarity Score:** {similarity:.2f}")
+    st.info(result_text)
 
-elif st.session_state.page == "Signature Fraud":
-    from pages import signature_fraud
-    signature_fraud.show()
+    # ------------------- FACE VERIFICATION -------------------
+    face_verified = "Not Performed"
+    if verify_faces and deepface_available:
+        try:
+            analysis = DeepFace.verify(img1, img2)
+            if analysis["verified"]:
+                face_verified = "✅ Faces Match"
+            else:
+                face_verified = "❌ Faces Do Not Match"
+            st.write("Face Verification:", face_verified)
+        except Exception as e:
+            st.warning(f"DeepFace Error: {str(e)}")
+            face_verified = "Error during verification"
 
-elif st.session_state.page == "Aadhaar Verification":
-    from pages import aadhaar_verification
-    aadhaar_verification.show()
+    # ------------------- GENERATE PDF -------------------
+    if st.button("📄 Generate Fraud Detection Report"):
+        pdf_buffer = generate_pdf(similarity, result_text, face_verified)
+        st.download_button(
+            label="Download Report as PDF",
+            data=pdf_buffer,
+            file_name="Fraud_Detection_Report.pdf",
+            mime="application/pdf"
+        )
 
-elif st.session_state.page == "PAN Verification":
-    from pages import pan_verification
-    pan_verification.show()
-
-elif st.session_state.page == "KYC Processing":
-    from pages import kyc_processing
-    kyc_processing.show()
-
-elif st.session_state.page == "Transaction Analysis":
-    from pages import transaction_analysis_page
-    transaction_analysis_page.show()
+else:
+    st.warning("Please upload both the Original and Suspected documents to begin analysis.")
