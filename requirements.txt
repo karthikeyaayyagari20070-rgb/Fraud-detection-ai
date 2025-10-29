@@ -1,23 +1,9 @@
-# Banking Fraud Detection System - Dependencies
-# Copy this file to requirements.txt when deploying to your own environment
-
-# Core Web Framework
-streamlit>=1.28.0
-
-# AI and OpenAI
-openai>=1.0.0
-
-# Image Processing
-pillow>=10.0.0
-opencv-python>=4.8.0
-
-# Scientific Computing
-numpy>=1.24.0
-pandas>=2.0.0
-
-# Machine Learning
-scikit-learn>=1.3.0
-scikit-image>=0.22.0
-
-# Additional Dependencies
-python-dateutil>=2.8.0
+streamlit
+opencv-python-headless==4.10.0.84
+numpy
+pillow
+scikit-image
+pandas
+reportlab
+deepface
+tensorflow
